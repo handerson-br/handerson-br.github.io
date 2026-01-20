@@ -5,14 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Chá Revelação - O Jogo</title>
     <style>
-        /* Variáveis de cores globais */
         :root {
             --primary-pink: #ffb6c1;
             --primary-blue: #87ceeb;
             --ground-height: 140px; 
         }
 
-        /* Reset básico e desativação de seleção de texto */
         * {
             margin: 0;
             padding: 0;
@@ -33,29 +31,48 @@
             touch-action: none;
         }
 
-        /* Contentor principal do jogo (simulando um telemóvel) */
         #game-container {
             width: 375px; 
             height: 667px; 
             max-width: 100vw;
             max-height: 100vh;
-            background: linear-gradient(to bottom, var(--primary-blue), var(--primary-pink));
-            background-size: 100% 200%;
-            animation: bgShift 10s ease-in-out infinite alternate;
+            /* Início com azul bebê */
+            background: linear-gradient(to bottom, #87ceeb, #f0faff);
             position: relative;
             overflow: hidden;
             box-shadow: 0 0 50px rgba(0,0,0,0.5);
             border: 8px solid #333;
             border-radius: 40px;
+            transition: background 5s ease-in-out;
         }
 
-        /* Animação suave do fundo */
-        @keyframes bgShift {
-            0% { background-position: 0% 0%; }
-            100% { background-position: 0% 100%; }
+        /* Movimento Orbital */
+        .celestial-orbit {
+            position: absolute;
+            top: 150px; /* Centro da órbita */
+            left: 50%;
+            width: 1px;
+            height: 1px;
+            z-index: 1;
         }
 
-        /* Elementos decorativos (montanhas) */
+        .celestial-body {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            font-size: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* Raio da órbita */
+            margin-left: -30px;
+            margin-top: -30px;
+            transition: opacity 2s ease-in-out;
+        }
+
+        #sun { opacity: 1; }
+        #moon { opacity: 0; }
+
         .mountain {
             position: absolute;
             bottom: var(--ground-height);
@@ -64,7 +81,6 @@
             z-index: 2;
         }
 
-        /* Partículas de brilho */
         .sparkle {
             position: absolute;
             background: white;
@@ -79,7 +95,6 @@
             50% { opacity: 0.6; transform: scale(1.2); }
         }
 
-        /* Área do chão */
         .ground {
             position: absolute;
             bottom: 0;
@@ -94,7 +109,6 @@
             justify-content: center;
         }
 
-        /* Botão de controlo principal */
         #tap-button {
             width: 80%;
             height: 60px;
@@ -113,7 +127,6 @@
         #tap-button:active {
             transform: translateY(3px);
             box-shadow: 0 1px 0 #ccc;
-            background: #f9f9f9;
         }
 
         .tap-text {
@@ -123,15 +136,23 @@
             letter-spacing: 2px;
         }
 
-        /* Personagem (Cegonha) */
-        #player {
-            width: 75px;
-            height: 75px;
+        #player-wrapper {
             position: absolute;
             bottom: var(--ground-height);
             left: 50px;
+            width: 75px;
+            height: 90px;
             z-index: 15;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            opacity: 0;
             transition: opacity 0.3s;
+        }
+
+        #player {
+            width: 75px;
+            height: 75px;
         }
 
         #player img {
@@ -140,7 +161,15 @@
             object-fit: contain;
         }
 
-        /* Obstáculos que surgem no jogo */
+        #player-shadow {
+            width: 40px;
+            height: 6px;
+            background: rgba(0,0,0,0.15);
+            border-radius: 50%;
+            margin-top: -5px;
+            transition: transform 0.8s cubic-bezier(0.34, 1.5, 0.64, 1), opacity 0.8s;
+        }
+
         .obstacle {
             width: 45px;
             height: 45px;
@@ -154,7 +183,6 @@
             z-index: 12;
         }
 
-        /* Painel de pontuação */
         #score-board {
             position: absolute;
             top: 40px;
@@ -171,9 +199,13 @@
             display: none; 
         }
 
-        /* Animação de salto */
         .jump-animation {
             animation: jump 0.8s cubic-bezier(0.34, 1.5, 0.64, 1);
+        }
+
+        .shadow-jump {
+            transform: scale(0.4);
+            opacity: 0.1;
         }
 
         @keyframes jump {
@@ -183,7 +215,6 @@
             100% { transform: translateY(0) rotate(0deg); }
         }
 
-        /* Camada de sobreposição para menus e modais */
         .overlay {
             position: absolute;
             top: 0;
@@ -198,7 +229,6 @@
             padding: 20px;
         }
 
-        /* Estilo das caixas de diálogo */
         .modal-content {
             background: white;
             padding: 25px;
@@ -212,7 +242,6 @@
             gap: 10px;
         }
 
-        /* Contentor para a foto final da revelação */
         .reveal-container {
             width: 100%;
             height: auto;
@@ -234,7 +263,6 @@
             display: block;
         }
 
-        /* Ícone circular padrão do bebé */
         .baby-photo-default {
             width: 90px;
             height: 90px;
@@ -253,7 +281,6 @@
             to { transform: scale(1); opacity: 1; }
         }
 
-        /* Estilo dos botões de ação */
         .btn {
             margin-top: 10px;
             padding: 15px 35px;
@@ -269,7 +296,6 @@
         .reveal-girl { color: #ff69b4; font-weight: 900; }
         .reveal-boy { color: #1e90ff; font-weight: 900; }
 
-        /* Nuvens decorativas com animação de movimento */
         .cloud {
             position: absolute;
             color: rgba(255, 255, 255, 0.8);
@@ -282,16 +308,40 @@
             from { left: 110%; }
             to { left: -80px; }
         }
+
+        #audio-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 150;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
     </style>
 </head>
 <body id="main-body">
 
     <div id="game-container">
-        <!-- Elementos fixos do cenário -->
+        <!-- Container Orbital -->
+        <div class="celestial-orbit">
+            <div id="sun" class="celestial-body">☀️</div>
+            <div id="moon" class="celestial-body">🌙</div>
+        </div>
+
+        <button id="audio-toggle" onclick="toggleAudio()">🔇</button>
+
         <div class="mountain" style="width: 150px; height: 80px; left: -30px; opacity: 0.3;"></div>
         <div class="mountain" style="width: 250px; height: 120px; right: -50px; opacity: 0.2;"></div>
 
-        <!-- Tela de Início -->
         <div id="start-screen" class="overlay">
             <div class="modal-content">
                 <div class="baby-photo-default">👶</div>
@@ -301,11 +351,13 @@
             </div>
         </div>
 
-        <!-- Interface de Jogo -->
         <div id="score-board">0000</div>
         
-        <div id="player" style="opacity: 0;">
-            <img src="https://cdn-icons-png.freepik.com/512/7433/7433080.png" alt="Cegonha">
+        <div id="player-wrapper">
+            <div id="player">
+                <img src="https://cdn-icons-png.freepik.com/512/7433/7433080.png" alt="Cegonha">
+            </div>
+            <div id="player-shadow"></div>
         </div>
 
         <div class="ground">
@@ -314,15 +366,12 @@
             </div>
         </div>
 
-        <!-- Modal genérico para checkpoints, game over e revelação -->
         <div id="modal-overlay" class="overlay" style="display: none;">
             <div class="modal-content">
                 <div id="checkpoint-icon" class="baby-photo-default">✨</div>
-                
                 <div id="reveal-image-container" class="reveal-container">
                     <img id="reveal-image-src" src="" alt="Revelação">
                 </div>
-
                 <h2 id="modal-title" style="font-size: 20px;">Mensagem</h2>
                 <p id="modal-body" style="margin: 10px 0; color: #555;"></p>
                 <button class="btn" id="modal-btn" onclick="closeModal()">Continuar</button>
@@ -331,20 +380,62 @@
     </div>
 
     <script>
-        // Seleção de elementos do DOM
+        // --- SISTEMA DE ÁUDIO ---
+        let audioCtx = null;
+        let musicActive = false;
+        const melody = [
+            { f: 261.63, d: 0.5 }, { f: 261.63, d: 0.5 }, { f: 392.00, d: 0.5 }, { f: 392.00, d: 0.5 },
+            { f: 440.00, d: 0.5 }, { f: 440.00, d: 0.5 }, { f: 392.00, d: 1.0 },
+            { f: 349.23, d: 0.5 }, { f: 349.23, d: 0.5 }, { f: 329.63, d: 0.5 }, { f: 329.63, d: 0.5 },
+            { f: 293.66, d: 0.5 }, { f: 293.66, d: 0.5 }, { f: 261.63, d: 1.0 }
+        ];
+
+        function playNote(freq, duration) {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + duration);
+        }
+
+        function startInternalMusic() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            let noteIdx = 0;
+            function playNext() {
+                if (!musicActive) return;
+                const note = melody[noteIdx];
+                playNote(note.f, note.d);
+                noteIdx = (noteIdx + 1) % melody.length;
+                setTimeout(playNext, note.d * 1000);
+            }
+            musicActive = true;
+            document.getElementById("audio-toggle").innerText = "🔊";
+            playNext();
+        }
+
+        function toggleAudio() {
+            if (!audioCtx) startInternalMusic();
+            else if (audioCtx.state === 'running') {
+                audioCtx.suspend(); document.getElementById("audio-toggle").innerText = "🔇"; musicActive = false;
+            } else {
+                audioCtx.resume(); document.getElementById("audio-toggle").innerText = "🔊"; musicActive = true;
+            }
+        }
+
+        // --- LÓGICA DO JOGO ---
         const player = document.getElementById("player");
+        const playerWrapper = document.getElementById("player-wrapper");
+        const playerShadow = document.getElementById("player-shadow");
         const gameContainer = document.getElementById("game-container");
         const scoreBoard = document.getElementById("score-board");
-        const modalOverlay = document.getElementById("modal-overlay");
-        const startScreen = document.getElementById("start-screen");
-        const modalTitle = document.getElementById("modal-title");
-        const modalBody = document.getElementById("modal-body");
-        const checkpointIcon = document.getElementById("checkpoint-icon");
-        const revealContainer = document.getElementById("reveal-image-container");
-        const revealImageSrc = document.getElementById("reveal-image-src");
+        const sun = document.getElementById("sun");
+        const moon = document.getElementById("moon");
         const tapButton = document.getElementById("tap-button");
 
-        // Estado do jogo
         let score = 0;
         let lastCheckPoint = 0; 
         let isJumping = false;
@@ -353,115 +444,134 @@
         let obstacleTimeout;
         let scoreInterval;
         
-        // --- CONFIGURAÇÃO DA REVELAÇÃO ---
-        const SEXO_DO_BEBE = "MENINA"; 
+        // Configuração do Ciclo Orbital
+        let celestialAngle = -180; // Começa na esquerda
+        const orbitalRadius = 180; 
+        let cycleDirection = 1; // 1 para dia, -1 para noite
 
+        const SEXO_DO_BEBE = "MENINO"; 
         const IMAGEM_MENINO = "https://raw.githubusercontent.com/handerson-br/handerson-br.github.io/refs/heads/main/Gemini_Generated_Image_nurngrnurngrnurn.png";
         const IMAGEM_MENINA = "https://raw.githubusercontent.com/handerson-br/handerson-br.github.io/refs/heads/main/Gemini_Generated_Image_j0nzszj0nzszj0nz.png";
 
-        // Mensagens narrativas baseadas na pontuação
         const messages = {
             150: "O caminho começou! 👣\nA jornada está a todo vapor.",
             300: "Metade do caminho! ✨\nEstamos chegando perto!",
             350: "Quase lá! 🎈\nO segredo está prestes a ser revelado.",
             final: {
-                "MENINA": "É a AMANDA! 🩷\nO mundo vai ficar mais cor-de-rosa!",
-                "MENINO": "É o LEVI! 💙\nMais um pequeno príncipe está a caminho!"
+                "MENINA": "É a AMANDA! 🩷\nO mundo vai ficar cor-de-rosa!",
+                "MENINO": "É o LEVI! 💙\nO nosso pequeno príncipe está a caminho!"
             }
         };
 
         let milestonesReached = { 150: false, 300: false, 350: false, 500: false };
 
-        // Inicializa o jogo e as tarefas em segundo plano (nuvens, brilhos)
         function startGame() {
-            startScreen.style.display = "none";
-            player.style.opacity = "1";
+            document.getElementById("start-screen").style.display = "none";
+            playerWrapper.style.opacity = "1";
             scoreBoard.style.display = "block";
             tapButton.style.display = "flex";
+            startInternalMusic();
             gameActive = true;
             scoreInterval = setInterval(updateScore, 120);
             createObstacle();
             setInterval(createCloud, 4000);
             setInterval(createSparkle, 1500);
+            requestAnimationFrame(updateOrbit);
         }
 
-        // Lógica do salto da cegonha
+        function updateOrbit() {
+            if (!gameActive || isGameOver) return;
+
+            // Incremento lento do ângulo orbital
+            celestialAngle += 0.2; 
+            
+            // Ciclo de 360 graus: 0-180 (Sol), 180-360 (Lua)
+            if (celestialAngle >= 180) celestialAngle = -180;
+
+            const rad = celestialAngle * (Math.PI / 180);
+            const x = Math.cos(rad) * orbitalRadius;
+            const y = Math.sin(rad) * orbitalRadius;
+
+            // Posiciona os astros (Sol e Lua em lados opostos da órbita)
+            sun.style.transform = `translate(${x}px, ${y}px)`;
+            
+            // Lua está a 180 graus do sol
+            const radMoon = (celestialAngle + 180) * (Math.PI / 180);
+            const xm = Math.cos(radMoon) * orbitalRadius;
+            const ym = Math.sin(radMoon) * orbitalRadius;
+            moon.style.transform = `translate(${xm}px, ${ym}px)`;
+
+            // Opacidade baseada na altura (y)
+            if (y < 0) { // Sol Visível
+                sun.style.opacity = 1;
+                moon.style.opacity = 0;
+                // Transição suave Azul -> Rosa
+                gameContainer.style.background = "linear-gradient(to bottom, #87ceeb, #fce4ec)";
+            } else { // Lua Visível
+                sun.style.opacity = 0;
+                moon.style.opacity = 1;
+                // Transição suave Azul Escuro -> Rosa Choque
+                gameContainer.style.background = "linear-gradient(to bottom, #2c3e50, #ff80ab)";
+            }
+
+            requestAnimationFrame(updateOrbit);
+        }
+
         function jump() {
             if (isJumping || !gameActive || isGameOver) return;
             isJumping = true;
             player.classList.add("jump-animation");
+            playerShadow.classList.add("shadow-jump");
             setTimeout(() => {
                 player.classList.remove("jump-animation");
+                playerShadow.classList.remove("shadow-jump");
                 isJumping = false;
             }, 800); 
         }
 
-        // Cria partículas visuais aleatórias
         function createSparkle() {
             if (!gameActive || isGameOver) return;
             const sparkle = document.createElement("div");
             sparkle.classList.add("sparkle");
             const size = Math.random() * 4 + 2;
-            sparkle.style.width = size + "px";
-            sparkle.style.height = size + "px";
+            sparkle.style.width = size + "px"; sparkle.style.height = size + "px";
             sparkle.style.left = Math.random() * 100 + "%";
             sparkle.style.top = Math.random() * 60 + "%";
             gameContainer.appendChild(sparkle);
             setTimeout(() => sparkle.remove(), 2000);
         }
 
-        // Gerador infinito de obstáculos com colisão
         function createObstacle() {
             if (!gameActive || isGameOver) return;
-
             const obstacle = document.createElement("div");
             obstacle.classList.add("obstacle");
-            const icons = ["🍼", "🧸", "🎀", "👟", "🎡", "🤱", "🐥", "⚽", "🎈", "👶🏻", "🎠", "🚀"];
+            const icons = ["🍼", "🧸", "🎀", "👟", "🐥", "⚽", "🎈", "👶🏻"];
             obstacle.innerText = icons[Math.floor(Math.random() * icons.length)];
             gameContainer.appendChild(obstacle);
-
             let obstaclePos = gameContainer.offsetWidth;
-            let speed = 3.5 + (score / 400); // Velocidade aumenta com a pontuação
+            let speed = 4 + (score / 350);
 
             function move() {
-                if (!gameActive || isGameOver) {
-                    obstacle.remove();
-                    return;
-                }
-
+                if (!gameActive || isGameOver) { obstacle.remove(); return; }
                 obstaclePos -= speed;
                 obstacle.style.left = obstaclePos + "px";
-
-                // Cálculo de colisão entre rectângulos (bounding boxes)
                 let p = player.getBoundingClientRect();
                 let o = obstacle.getBoundingClientRect();
-
                 if (p.right - 25 > o.left && p.left + 25 < o.right && p.bottom - 15 > o.top) {
-                    gameOver();
-                    obstacle.remove();
-                    return;
+                    gameOver(); obstacle.remove(); return;
                 }
-
-                if (obstaclePos < -60) {
-                    obstacle.remove();
-                } else {
-                    requestAnimationFrame(move);
-                }
+                if (obstaclePos < -60) obstacle.remove();
+                else requestAnimationFrame(move);
             }
             requestAnimationFrame(move);
-            
-            // Tempo de spawn aleatório que diminui com o tempo (aumenta dificuldade)
-            let nextSpawn = Math.random() * (1800 - (score/2)) + 1400;
-            obstacleTimeout = setTimeout(createObstacle, Math.max(nextSpawn, 1100));
+            let nextSpawn = Math.random() * (1600 - (score/2)) + 1200;
+            obstacleTimeout = setTimeout(createObstacle, Math.max(nextSpawn, 900));
         }
 
-        // Atualização contínua da pontuação e verificação de metas
         function updateScore() {
             if (!gameActive || isGameOver) return;
             score += 1;
             scoreBoard.innerText = score.toString().padStart(4, '0');
-
-            // Verifica checkpoints
             [150, 300, 350].forEach(m => {
                 if (score === m && !milestonesReached[m]) {
                     milestonesReached[m] = true;
@@ -469,127 +579,81 @@
                     pauseGame(messages[m]);
                 }
             });
-
-            // Vitória / Revelação final aos 500 pontos
             if (score >= 500 && !milestonesReached[500]) {
                 milestonesReached[500] = true;
                 revealSex();
             }
         }
 
-        // Pausa o jogo para mostrar mensagens de progresso
         function pauseGame(msg) {
             gameActive = false;
             clearInterval(scoreInterval); 
-            modalTitle.innerText = "Checkpoint!";
-            modalBody.innerText = msg;
-            
-            revealContainer.style.display = "none";
-            checkpointIcon.style.display = "flex";
-            checkpointIcon.innerText = "✨";
-            
-            modalOverlay.style.display = "flex";
+            document.getElementById("modal-title").innerText = "Checkpoint!";
+            document.getElementById("modal-body").innerText = msg;
+            document.getElementById("reveal-image-container").style.display = "none";
+            document.getElementById("checkpoint-icon").style.display = "flex";
+            document.getElementById("checkpoint-icon").innerText = "✨";
+            document.getElementById("modal-overlay").style.display = "flex";
             tapButton.style.display = "none";
         }
 
-        // Fecha modais e retoma o estado ativo
         function closeModal() {
-            if (isGameOver && score >= 500) {
-                location.reload(); // Reinicia após a revelação
-                return;
-            }
+            if (isGameOver && score >= 500) { location.reload(); return; }
             if (isGameOver) {
                 isGameOver = false;
-                score = lastCheckPoint; // Retorna ao último checkpoint salvo
+                score = lastCheckPoint;
                 scoreBoard.innerText = score.toString().padStart(4, '0');
                 document.querySelectorAll('.obstacle').forEach(o => o.remove());
+                requestAnimationFrame(updateOrbit); // Reinicia órbita
             }
-            modalOverlay.style.display = "none";
+            document.getElementById("modal-overlay").style.display = "none";
             tapButton.style.display = "flex";
             gameActive = true;
             scoreInterval = setInterval(updateScore, 120);
             createObstacle(); 
         }
 
-        // Trata a derrota do jogador
         function gameOver() {
-            gameActive = false;
-            isGameOver = true;
-            clearInterval(scoreInterval);
-            clearTimeout(obstacleTimeout);
+            gameActive = false; isGameOver = true;
+            clearInterval(scoreInterval); clearTimeout(obstacleTimeout);
             tapButton.style.display = "none";
-            
-            modalTitle.innerText = "Ops!";
-            modalBody.innerText = `A cegonha parou para descansar. Continuar de ${lastCheckPoint} pontos?`;
+            document.getElementById("modal-title").innerText = "Ops!";
+            document.getElementById("modal-body").innerText = `A cegonha parou para descansar. Continuar de ${lastCheckPoint} pontos?`;
             document.getElementById("modal-btn").innerText = "Continuar";
-            
-            revealContainer.style.display = "none";
-            checkpointIcon.style.display = "flex";
-            checkpointIcon.innerText = "💤";
-            
-            modalOverlay.style.display = "flex";
+            document.getElementById("reveal-image-container").style.display = "none";
+            document.getElementById("checkpoint-icon").style.display = "flex";
+            document.getElementById("checkpoint-icon").innerText = "💤";
+            document.getElementById("modal-overlay").style.display = "flex";
         }
 
-        // Função principal da revelação do sexo
         function revealSex() {
-            gameActive = false;
-            isGameOver = true;
-            clearInterval(scoreInterval);
-            clearTimeout(obstacleTimeout);
+            gameActive = false; isGameOver = true;
+            clearInterval(scoreInterval); clearTimeout(obstacleTimeout);
             tapButton.style.display = "none";
-            
             const res = messages.final[SEXO_DO_BEBE];
-            modalTitle.innerText = "🎊 SURPRESA! 🎊";
-            modalBody.innerHTML = `<span class="${SEXO_DO_BEBE === 'MENINA' ? 'reveal-girl' : 'reveal-boy'}" style="font-size: 22px;">${res}</span>`;
-            
-            checkpointIcon.style.display = "none";
-            revealContainer.style.display = "flex";
-            revealImageSrc.src = SEXO_DO_BEBE === 'MENINA' ? IMAGEM_MENINA : IMAGEM_MENINO;
-
-            modalOverlay.style.display = "flex";
+            document.getElementById("modal-title").innerText = "🎊 SURPRESA! 🎊";
+            document.getElementById("modal-body").innerHTML = `<span class="${SEXO_DO_BEBE === 'MENINA' ? 'reveal-girl' : 'reveal-boy'}" style="font-size: 22px;">${res}</span>`;
+            document.getElementById("checkpoint-icon").style.display = "none";
+            document.getElementById("reveal-image-container").style.display = "flex";
+            document.getElementById("reveal-image-src").src = SEXO_DO_BEBE === 'MENINA' ? IMAGEM_MENINA : IMAGEM_MENINO;
+            document.getElementById("modal-overlay").style.display = "flex";
             document.getElementById("modal-btn").innerText = "Reiniciar";
         }
 
-        // Cria nuvens que cruzam o ecrã
         function createCloud() {
             if (!gameActive || isGameOver) return;
             const cloud = document.createElement("div");
             cloud.classList.add("cloud");
             cloud.innerText = "☁️";
             cloud.style.top = Math.random() * 200 + "px";
-            // CORREÇÃO: s agora está dentro da string para evitar SyntaxError
             cloud.style.animationDuration = (Math.random() * 12 + 10) + "s";
             gameContainer.appendChild(cloud);
             setTimeout(() => cloud.remove(), 25000);
         }
 
-        // Listeners para interação tátil e rato
-        tapButton.addEventListener("touchstart", (e) => {
-            e.preventDefault();
-            jump();
-        });
+        tapButton.addEventListener("touchstart", (e) => { e.preventDefault(); jump(); });
         tapButton.addEventListener("mousedown", jump);
-
-        // Atalhos de teclado
-        window.addEventListener("keydown", (e) => {
-            if (e.code === "Space") { 
-                e.preventDefault(); 
-                jump(); 
-            }
-            
-            // "Cheat code" para debug/revelação rápida (Ctrl + 5)
-            if (e.ctrlKey && e.key === "5") {
-                e.preventDefault();
-                score = 500;
-                milestonesReached[150] = true;
-                milestonesReached[300] = true;
-                milestonesReached[350] = true;
-                if (!milestonesReached[500]) {
-                    milestonesReached[500] = true;
-                    revealSex();
-                }
-            }
-        });
+        window.addEventListener("keydown", (e) => { if (e.code === "Space") { e.preventDefault(); jump(); } });
     </script>
 </body>
 </html>
