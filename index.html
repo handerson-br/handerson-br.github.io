@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <!-- Configuração para dispositivos móveis: impede o zoom e ajusta à largura do ecrã -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chá Revelação - O Jogo</title>
+    <style>
+        :root {
+            /* Definição de cores principais para o tema do chá revelação */
+            --primary-pink: #ffb6c1;
+            --primary-blue: #87ceeb;
+            --bg-color: #f7fbff;
+        }
+
+        /* Reset básico de CSS e configurações globais de fonte e toque */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            user-select: none; /* Impede a seleção de texto durante o jogo */
+            -webkit-tap-highlight-color: transparent; /* Remove o brilho ao tocar em botões no mobile */
+        }
+
+        body {
+            background-color: #222; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            touch-action: none; /* Desativa gestos padrão do navegador para não interferir no jogo */
+        }
+
+        /* Contentor principal do jogo com proporção de ecrã de telemóvel */
+        #game-container {
+            width: 375px; 
+            height: 667px; 
+            max-width: 100vw;
+            max-height: 100vh;
+            /* Gradiente de fundo que transita entre azul e rosa */
+            background: linear-gradient(to bottom, var(--primary-blue), var(--primary-pink));
+            background-size: 100% 200%;
+            animation: bgShift 10s ease-in-out infinite alternate;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            border: 8px solid #333;
+            border-radius: 40px;
+        }
+
+        /* Animação que faz o fundo "subir e descer" suavemente */
+        @keyframes bgShift {
+            0% { background-position: 0% 0%; }
+            100% { background-position: 0% 100%; }
+        }
+
+        /* Estilo do chão branco no fundo do ecrã */
+        .ground {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 60px;
+            background-color: #fff;
+            border-top: 4px solid #eee;
+            z-index: 10;
+        }
+
+        /* Estilo do jogador (Cegonha) */
+        #player {
+            width: 80px;
+            height: 80px;
+            position: absolute;
+            bottom: 60px;
+            left: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 15;
+            filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.1));
+            transition: opacity 0.3s;
+        }
+
+        #player img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transform: scaleX(1);
+        }
+
+        /* Estilo dos obstáculos que aparecem no jogo */
+        .obstacle {
+            width: 45px;
+            height: 45px;
+            position: absolute;
+            bottom: 60px;
+            right: -60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 35px;
+            z-index: 12;
+        }
+
+        /* Painel de pontuação no topo */
+        #score-board {
+            position: absolute;
+            top: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 32px;
+            font-weight: 900;
+            color: white;
+            z-index: 20;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            background: rgba(0,0,0,0.1);
+            padding: 5px 20px;
+            border-radius: 20px;
+            display: none; 
+        }
+
+        /* Classe aplicada via JS para executar a animação de salto */
+        .jump-animation {
+            animation: jump 0.85s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* Animação de salto com uma ligeira rotação */
+        @keyframes jump {
+            0% { transform: translateY(0) rotate(0deg); }
+            45% { transform: translateY(-200px) rotate(-10deg); }
+            55% { transform: translateY(-200px) rotate(-10deg); }
+            100% { transform: translateY(0) rotate(0deg); }
+        }
+
+        /* Camadas de sobreposição para menus e modais */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            padding: 20px;
+        }
+
+        #start-screen {
+            background: linear-gradient(135deg, white, #f0f0f0);
+            z-index: 110;
+        }
+
+        /* Estilo comum para as janelas modais */
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 320px;
+            width: 100%;
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+            animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* Círculo para ícones/fotos dentro dos modais */
+        .baby-photo {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            border: 5px solid var(--primary-pink);
+            background-color: #eee;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            font-size: 60px;
+        }
+
+        @keyframes pop {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        /* Botões personalizados */
+        .btn {
+            margin-top: 20px;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 30px;
+            background: #444;
+            color: white;
+            font-weight: 800;
+            cursor: pointer;
+            font-size: 18px;
+            transition: transform 0.2s;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn-start {
+            background: var(--primary-blue);
+            color: #333;
+            box-shadow: 0 4px 15px rgba(135, 206, 235, 0.4);
+        }
+
+        /* Cores de destaque para a revelação final */
+        .reveal-girl { color: #ff69b4; font-weight: 900; }
+        .reveal-boy { color: #1e90ff; font-weight: 900; }
+
+        /* Estilo das nuvens decorativas */
+        .cloud {
+            position: absolute;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 45px;
+            animation: moveClouds linear infinite;
+            z-index: 5;
+        }
+
+        /* Animação das nuvens a atravessar o ecrã */
+        @keyframes moveClouds {
+            from { left: 110%; }
+            to { left: -100px; }
+        }
+    </style>
+</head>
+<body id="main-body">
+
+    <div id="game-container">
+        <!-- Ecrã de Início: Apresentação do jogo -->
+        <div id="start-screen" class="overlay">
+            <div class="modal-content">
+                <div class="baby-photo">👶</div>
+                <h1 style="color: #333; margin-bottom: 10px;">Chá Revelação</h1>
+                <p style="color: #666; margin-bottom: 20px;">Levi ou Amanda? Ajude a cegonha a revelar esse segredo!</p>
+                <button class="btn btn-start" onclick="startGame()">Começar Viagem</button>
+            </div>
+        </div>
+
+        <!-- Elementos do jogo: Placar, Jogador e Chão -->
+        <div id="score-board">0000</div>
+        <div id="player" style="opacity: 0;">
+            <img src="https://cdn-icons-png.freepik.com/512/7433/7433080.png" alt="Cegonha">
+        </div>
+        <div class="ground"></div>
+
+        <!-- Estrutura Genérica para Modais de Mensagem, Erro e Revelação Final -->
+        <div id="modal-overlay" class="overlay" style="display: none;">
+            <div class="modal-content">
+                <div id="reveal-icon" class="baby-photo" style="display: none;">✨</div>
+                <h2 id="modal-title" style="color: #333;">Mensagem!</h2>
+                <p id="modal-body" style="margin: 15px 0; line-height: 1.5; font-size: 17px; color: #555;"></p>
+                <button class="btn" id="modal-btn" onclick="closeModal()">Continuar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Seleção de elementos do DOM
+        const player = document.getElementById("player");
+        const gameContainer = document.getElementById("game-container");
+        const scoreBoard = document.getElementById("score-board");
+        const modalOverlay = document.getElementById("modal-overlay");
+        const startScreen = document.getElementById("start-screen");
+        const modalTitle = document.getElementById("modal-title");
+        const modalBody = document.getElementById("modal-body");
+        const revealIcon = document.getElementById("reveal-icon");
+        const mainBody = document.getElementById("main-body");
+
+        // Variáveis de Estado do Jogo
+        let score = 0;
+        let lastCheckPoint = 0; 
+        let isJumping = false;
+        let isGameOver = false;
+        let gameActive = false; 
+        let obstacleTimeout;
+        let scoreInterval;
+        
+        // RESULTADO FINAL: Define o que será revelado ao atingir 500 pontos
+        const SEXO_DO_BEBE = "MENINO"; // Alterar para "MENINA" se necessário
+
+        // Textos das Milestones e Revelação Final
+        const messages = {
+            150: "O caminho começou! 👣\nA jornada da cegonha está a todo vapor. Quem será que vem aí?",
+            300: "Metade do caminho! ✨\nA ansiedade está aumentando. Estamos chegando perto da revelação!",
+            350: "Quase lá! 🎈\nA emoção toma conta! O segredo está prestes a ser revelado.",
+            final: {
+                "MENINA": "É a AMANDA! 🩷\nPreparem os laços, o mundo vai ficar muito mais cor-de-rosa!",
+                "MENINO": "É o LEVI! 💙\nPreparem as aventuras, o nossos pequenos príncipes estão a caminho!"
+            }
+        };
+
+        // Controlo para garantir que cada mensagem só aparece uma vez
+        let milestonesReached = { 150: false, 300: false, 350: false, 500: false };
+
+        /**
+         * Inicia o ciclo do jogo: esconde o menu e ativa intervalos de pontos/obstáculos
+         */
+        function startGame() {
+            startScreen.style.display = "none";
+            player.style.opacity = "1";
+            scoreBoard.style.display = "block";
+            gameActive = true;
+            scoreInterval = setInterval(updateScore, 120);
+            createObstacle();
+            setInterval(createCloud, 3000);
+        }
+
+        /**
+         * Executa a lógica de salto do jogador
+         */
+        function jump() {
+            if (isJumping || !gameActive || isGameOver) return;
+            isJumping = true;
+            player.classList.add("jump-animation");
+            
+            setTimeout(() => {
+                player.classList.remove("jump-animation");
+                isJumping = false;
+            }, 850); 
+        }
+
+        /**
+         * Cria e gere o movimento de um obstáculo
+         */
+        function createObstacle() {
+            if (!gameActive || isGameOver) return;
+
+            const obstacle = document.createElement("div");
+            obstacle.classList.add("obstacle");
+            const iconSymbols = ["🍼", "🧸", "🎀", "👟", "🎡", "🤱", "🐕", "🐥", "🏃🏻‍♀️", "👩🏻‍🤝‍👨🏽", "⚽", "🚗", "🚲", "🧸", "🪆", "🎀", "🎈", "🩷", "💙", "🎠", "🚀", "🧘🏻‍♂️", "👶🏻", "👧🏻", "🩰"];
+            obstacle.innerText = iconSymbols[Math.floor(Math.random() * iconSymbols.length)];
+            gameContainer.appendChild(obstacle);
+
+            let obstaclePos = gameContainer.offsetWidth;
+            let speed = 3.0 + (score / 500); // Aumenta a velocidade conforme a pontuação
+
+            /**
+             * Função interna para animar o movimento do obstáculo e verificar colisões
+             */
+            function move() {
+                if (!gameActive || isGameOver) {
+                    obstacle.remove();
+                    return;
+                }
+
+                obstaclePos -= speed;
+                obstacle.style.left = obstaclePos + "px";
+
+                let playerRect = player.getBoundingClientRect();
+                let obstacleRect = obstacle.getBoundingClientRect();
+
+                // Margens para tornar a colisão mais justa (menos sensível às bordas transparentes)
+                const marginX = 30; 
+                const marginY = 25; 
+
+                // Algoritmo de deteção de sobreposição (colisão)
+                if (
+                    playerRect.right - marginX > obstacleRect.left && 
+                    playerRect.left + marginX < obstacleRect.right && 
+                    playerRect.bottom - marginY > obstacleRect.top
+                ) {
+                    gameOver();
+                    obstacle.remove();
+                    return;
+                }
+
+                if (obstaclePos < -60) {
+                    obstacle.remove();
+                } else {
+                    requestAnimationFrame(move);
+                }
+            }
+
+            requestAnimationFrame(move);
+            
+            // Agenda a criação do próximo obstáculo com tempo aleatório decrescente
+            let nextSpawn = Math.random() * (2200 - (score/2)) + 1600;
+            obstacleTimeout = setTimeout(createObstacle, Math.max(nextSpawn, 1400));
+        }
+
+        /**
+         * Incrementa a pontuação e verifica se atingiu algum checkpoint ou o final
+         */
+        function updateScore() {
+            if (!gameActive || isGameOver) return;
+            
+            score += 1;
+            scoreBoard.innerText = score.toString().padStart(4, '0');
+
+            // Lógica de Checkpoints
+            if (score === 150 && !milestonesReached[150]) {
+                milestonesReached[150] = true;
+                lastCheckPoint = 150;
+                pauseGame(messages[150]);
+            } else if (score === 300 && !milestonesReached[300]) {
+                milestonesReached[300] = true;
+                lastCheckPoint = 300;
+                pauseGame(messages[300]);
+            } else if (score === 350 && !milestonesReached[350]) {
+                milestonesReached[350] = true;
+                lastCheckPoint = 350;
+                pauseGame(messages[350]);
+            } else if (score >= 500 && !milestonesReached[500]) {
+                milestonesReached[500] = true;
+                revealSex();
+            }
+        }
+
+        /**
+         * Pausa o jogo para mostrar uma mensagem de checkpoint
+         */
+        function pauseGame(msg) {
+            gameActive = false;
+            clearInterval(scoreInterval); 
+            modalTitle.innerText = "Checkpoint!";
+            modalBody.innerText = msg;
+            revealIcon.style.display = "flex";
+            revealIcon.innerText = "✨";
+            modalOverlay.style.display = "flex";
+        }
+
+        /**
+         * Fecha qualquer modal aberto e retoma o jogo ou reinicia se necessário
+         */
+        function closeModal() {
+            // Se o jogo acabou e ganhou, recarrega a página ao clicar
+            if (isGameOver && score >= 500) {
+                location.reload();
+                return;
+            }
+            
+            // Se morreu, reseta a pontuação para o último checkpoint
+            if (isGameOver) {
+                isGameOver = false;
+                score = lastCheckPoint;
+                scoreBoard.innerText = score.toString().padStart(4, '0');
+                
+                // Limpa obstáculos antigos do ecrã
+                const obstacles = document.querySelectorAll('.obstacle');
+                obstacles.forEach(obs => obs.remove());
+            }
+            
+            modalOverlay.style.display = "none";
+            revealIcon.style.display = "none";
+            gameActive = true;
+            scoreInterval = setInterval(updateScore, 120);
+            createObstacle(); 
+        }
+
+        /**
+         * Lógica de colisão: para o jogo e oferece a continuação do último checkpoint
+         */
+        function gameOver() {
+            gameActive = false;
+            isGameOver = true;
+            clearInterval(scoreInterval);
+            clearTimeout(obstacleTimeout);
+            
+            modalTitle.innerText = "Ops!";
+            modalBody.innerText = `A cegonha descansou um pouco. Vamos continuar de onde paramos (${lastCheckPoint} pontos)?`;
+            document.getElementById("modal-btn").innerText = "Continuar Jornada";
+            revealIcon.style.display = "none";
+            modalOverlay.style.display = "flex";
+        }
+
+        /**
+         * Revelação final do sexo do bebé
+         */
+        function revealSex() {
+            gameActive = false;
+            isGameOver = true;
+            clearInterval(scoreInterval);
+            clearTimeout(obstacleTimeout);
+            
+            const result = messages.final[SEXO_DO_BEBE];
+            modalTitle.innerText = "🎊 SURPRESA! 🎊";
+            modalBody.innerHTML = `<span class="${SEXO_DO_BEBE === 'MENINA' ? 'reveal-girl' : 'reveal-boy'}" style="font-size: 24px;">${result}</span>`;
+            
+            revealIcon.innerText = SEXO_DO_BEBE === 'MENINA' ? '🩷' : '💙';
+            revealIcon.style.display = "flex";
+            modalOverlay.style.display = "flex";
+            document.getElementById("modal-btn").innerText = "Jogar Novamente";
+        }
+
+        /**
+         * Cria nuvens puramente decorativas que voam pelo céu
+         */
+        function createCloud() {
+            if (!gameActive || isGameOver) return;
+            const cloud = document.createElement("div");
+            cloud.classList.add("cloud");
+            cloud.innerText = "☁️";
+            cloud.style.top = Math.random() * 300 + "px";
+            cloud.style.animationDuration = (Math.random() * 8 + 8) + "s";
+            gameContainer.appendChild(cloud);
+            setTimeout(() => cloud.remove(), 16000);
+        }
+
+        /**
+         * Eventos de teclado (Espaço) para saltar no computador
+         */
+        window.addEventListener("keydown", function(e) {
+            if (e.code === "Space" || e.keyCode === 32) {
+                e.preventDefault();
+                jump();
+            }
+        });
+
+        /**
+         * Eventos de toque para saltar no telemóvel
+         */
+        mainBody.addEventListener("touchstart", function(e) {
+            // Ignora o toque se for num botão (para não saltar ao clicar no menu)
+            if (e.target.tagName === "BUTTON") return;
+            e.preventDefault();
+            jump();
+        }, { passive: false });
+
+    </script>
+</body>
+</html>
